@@ -7,6 +7,7 @@ Material utilizado:
   - Display Lcd 16X2
   - Sensor Infravermelho Tcrt5000
 
-Esquema eletrico:
+Montagem:
+![](documents/image/estacionamento1.0_bb.png)
 
 Diagrama de funcionamento:
