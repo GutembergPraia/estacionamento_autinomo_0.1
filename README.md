@@ -13,3 +13,6 @@ Montagem:
 ![](documents/image/estacionamento1.0_bb.png)
 
 Diagrama de funcionamento:
+
+Pontos Ngeativos:
+  - Sensor Tcrt5000, apesar de barato e facil de encontrar possui uma distância de detecção máxima muito pequena (25mm).
