@@ -1,17 +1,23 @@
+/*
+* Desenvolvido por Gutemberg Praia
+*/
+
 #include <Servo.h>
 #include <LiquidCrystal.h>
 
-Servo entrada,saida;
+#define TOTAL_GARAGEM  3   //Quantidade total de garagens
+#define TOTAL_PORTAO   2   //Quantidade total de Portões de entrada e saida
 
 LiquidCrystal lcd(13, 12, 11, 8, 1, 0);
 
 unsigned long currentMillis;
 
+//Estrutura garagem
 typedef struct
 {
-   int iLedGreen; //pinagem do led  verde
-   int iLedRed;   //pinagem do led Vermelho
-   int iSensor;   //porta do sensor
+   int iLedGreen; //porta led  verde
+   int iLedRed;   //porta led Vermelho
+   int iSensor;   //porta sensor
    int iDistMin;  //distancia minima de acionamento
    int iValue;    //valor da ultima leitura
 } garagem_type;
@@ -23,17 +29,19 @@ garagem_type garagem[3]={
   {6,7,A4,500,0}
 };
 
-const int tamGaragem = sizeof(garagem)/sizeof(garagem_type);
+int iGaragemDisp = TOTAL_GARAGEM; //Quantidade de vaga disponivel
 
-int iGaragemDisp = tamGaragem; //Quantidade de vaga disponivel
+//Inicia Vetor de servo
+Servo sPortao[TOTAL_PORTAO];
 
+//Estrutura da portão
 typedef struct
 {
+   int iServoId;   //id-Servo
    int iTipo;     //0-entrada 1 -saida
    int iSensor;   //porta do sensor
    int iDistMin;  //distancia minima de acionamento
    int iValue;    //valor da ultima leitura
-   Servo servo;   //Objeto Servo
    int iServo;    //porta do servo
    int iAngIni;   //angulo inicial
    int iAngFin;   //angulo Final
@@ -43,20 +51,19 @@ typedef struct
 
 } gate_type;
 
-//Iniciar vetor portão
+//Iniciar vetor portão de entrada/saida
 gate_type gate[2]={
-  {0,A0,300,0,entrada,9,90,0,0,0,5000},
-  {1,A1,500,0,saida,10,90,0,0,0,5000}
+  {0,0,A0,300,0,9,90,0,0,0,5000},
+  {1,1,A1,500,0,10,90,0,0,0,5000}
 };
 
-const int tamGate = sizeof(gate)/sizeof(gate_type);
 
 void readSensor (){
-  for (int i = 0; i < tamGate; i++) {
+  for (int i = 0; i < TOTAL_PORTAO; i++) {
     gate[i].iValue = analogRead(gate[i].iSensor);
     if(gate[i].iValue < gate[i].iDistMin && (iGaragemDisp > 0 || gate[i].iTipo==1)){
       if(gate[i].iStatus == 0){
-        gate[i].servo.write(gate[i].iAngFin);
+        sPortao[gate[i].iServoId].write(gate[i].iAngFin);
         gate[i].iStatus = 1;
         gate[i].previousMillis = currentMillis;
         delay(10);
@@ -64,7 +71,7 @@ void readSensor (){
     }else{
       if(gate[i].iStatus == 1){
         if (currentMillis - gate[i].previousMillis >= gate[i].interval) {
-          gate[i].servo.write(90);
+          sPortao[gate[i].iServoId].write(90);
           gate[i].iStatus = 0;
           if(gate[i].iTipo){
             iGaragemDisp+=1;
@@ -81,7 +88,7 @@ void readSensor (){
     }
   }
 
-  for (int i = 0; i < tamGaragem; i++) {
+  for (int i = 0; i < TOTAL_GARAGEM; i++) {
     garagem[i].iValue = analogRead(garagem[i].iSensor);
     if(garagem[i].iValue < garagem[i].iDistMin){
       digitalWrite(garagem[i].iLedGreen, HIGH);
@@ -100,16 +107,24 @@ void setup() {
   //Serial.begin(115200);
 
   //definir pinos dos leds como pino de saida
-  for (int i = 0; i < tamGaragem; i++) {
+  for (int i = 0; i < TOTAL_GARAGEM; i++) {
     pinMode(garagem[i].iLedGreen, OUTPUT);
     pinMode(garagem[i].iLedRed, OUTPUT);
   }
 
   //iniciar servos
-  for (int i = 0; i < tamGate; i++) {
+  for (int i = 0; i < TOTAL_PORTAO; i++) {
     gate[i].servo.attach(gate[i].iServo);
     gate[i].servo.write(gate[i].iAngIni);
     delay(10);
+  }
+   
+  //Verifica se possui algum carro na garagem ao iniciar o sistema
+  for (int i = 0; i < TOTAL_GARAGEM; i++) {
+    garagem[i].iValue = analogRead(garagem[i].iSensor);
+    if(garagem[i].iValue < garagem[i].iDistMin){
+      iGaragemDisp-=1;
+    }
   }
 
   lcd.begin(16, 2);
