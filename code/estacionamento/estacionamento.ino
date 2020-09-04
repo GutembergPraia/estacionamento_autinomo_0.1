@@ -114,8 +114,8 @@ void setup() {
 
   //iniciar servos
   for (int i = 0; i < TOTAL_PORTAO; i++) {
-    gate[i].servo.attach(gate[i].iServo);
-    gate[i].servo.write(gate[i].iAngIni);
+    sPortao[gate[i].iServoId].attach(gate[i].iServo);
+    sPortao[gate[i].iServoId].write(gate[i].iAngIni);
     delay(10);
   }
    
