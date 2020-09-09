@@ -127,7 +127,7 @@ void updateConts(){
   }
 
   if(iGaragem == TOTAL_GARAGEM-1){
-  	iGaragem = -1;
+  	iGaragem = 0;
   }else{
     iGaragem += 1;
   }
